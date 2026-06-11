@@ -1,0 +1,47 @@
+.content .content-buttons {
+
+    margin-bottom: 10px;
+
+}
+
+a {
+    text-decoration: none !important;
+}
+
+
+
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    x: 0px;
+    y: 0px;
+    viewbox: 0 0 40 40;
+}
+
+.spinner circle {
+    fill: transparent;
+    stroke: #0ac8a6;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 125.6;
+    transform-origin: 20px 20px 0;
+    animation: spinner 4s linear infinite;
+}
+
+@keyframes spinner {
+    0% {
+        stroke-dashoffset: 26.4;
+        transform: rotate(0deg);
+    }
+
+    50% {
+        stroke-dashoffset: 125.6;
+        transform: rotate(720deg);
+    }
+
+    100% {
+        stroke-dashoffset: 26.4;
+        transform: rotate(1080deg);
+    }
+}

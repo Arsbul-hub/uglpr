@@ -1,0 +1,8 @@
+@font-face {
+    font-family: "main_font_medium"; /*a name to be used later*/
+    src: url("../fonts/graphiklcweb_medium.ttf"); /*URL to font*/
+}
+@font-face {
+    font-family: "main_font_regular"; /*a name to be used later*/
+    src: url("../fonts/graphiklcweb_regular.ttf"); /*URL to font*/
+}

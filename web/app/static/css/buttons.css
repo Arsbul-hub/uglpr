@@ -1,0 +1,30 @@
+.button_regular {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+    width: 300px;
+    height: 55px;
+    background-color: #FF6BB5;
+    font-size: 15px;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color .3s;
+}
+
+.button_regular-touched {
+    background-color: #D9D9D9;
+}
+
+.button_regular_inline {
+    width: calc(100% - 30px);
+}
+
+a,
+button {
+    -webkit-tap-highlight-color: transparent;
+}
