@@ -589,18 +589,18 @@ class SimplifiedResultsAnalyzer:
         #
         # 2. Сводная таблица
         summary_table = self.create_summary_table_for_publication()
-        # summary_table.to_csv(f'{filename_prefix}_table.csv', index=False)
+        summary_table.to_csv(f'{filename_prefix}_table.csv', index=False)
         #
         # 3. Сохранить таблицу как LaTeX для прямого использования в статье
         latex_table = summary_table.to_latex(index=False, escape=False,
                                            column_format='|l|c|c|c|',
                                            caption='Сравнительный анализ стратегий восстановления покрытий',
                                            label='tab:restoration_strategies')
-        
-        # with open(f'{filename_prefix}_table.tex', 'w', encoding='utf-8') as f:
-        #     f.write(latex_table)
-        #     f.write('\n\n% Примечание: * - относительно консервативной стратегии (принята за 1.000)')
         #
+        with open(f'{filename_prefix}_table.tex', 'w', encoding='utf-8') as f:
+            f.write(latex_table)
+            f.write('\n\n% Примечание: * - относительно консервативной стратегии (принята за 1.000)')
+
         # print("\nУпрощенные результаты сохранены:")
         # print(f"  - График: {filename_prefix}_dynamics.png/pdf")
         # print(f"  - Таблица: {filename_prefix}_table.csv")

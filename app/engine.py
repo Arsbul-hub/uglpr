@@ -9,13 +9,13 @@ from io import BytesIO
 
 from app.coating_restoration_study import StudyParameters, CoatingRestorationStudy, SimplifiedResultsAnalyzer
 from app.common import resource_path
-from tests.coating_restoration_study import RestorationStrategy
+from app.coating_restoration_study import RestorationStrategy
 
 
 class Engine:
     def __init__(self, datasets: list):
         self.__datasets = []
-
+        self.__loaded_figs = {}
         for dataset_path in datasets:
             pd_dataframe = pd.read_csv(
                 resource_path(dataset_path), header=None, sep='\\s+'
@@ -44,7 +44,7 @@ class Engine:
             dataset_name = dataset_path.split("/")[-1]
             # Сохраняем все в словаре
             dataset_dict = {
-                'path': dataset_name,
+                'name': dataset_name,
                 'dataframe': pd_dataframe,
                 'survival_times': survival_times,
                 'F_i': F_i,
@@ -55,6 +55,7 @@ class Engine:
                 'fitted_gamma': fitted_gamma,
                 'params': params
             }
+            self.__loaded_figs[dataset_name] = {}
             self.__datasets.append(dataset_dict)
 
     @staticmethod
@@ -77,10 +78,12 @@ class Engine:
 
     def get_dataset_name(self, index):
         """Возвращает путь (название) датасета по индексу."""
-        return self.__datasets[index]['path']
+        return self.__datasets[index]['name']
 
     def get_life_time_gistogram(self, dataset):
         """Гистограмма времен выживания."""
+        if "life_time_gistogram" in self.__loaded_figs[dataset["name"]]:
+            return self.__loaded_figs[dataset["name"]]["life_time_gistogram"]
         survival_times = dataset['survival_times']
         fig, ax = plt.subplots()
         ax.hist(survival_times, bins=20, edgecolor='black')
@@ -88,11 +91,14 @@ class Engine:
         ax.set_xlabel('Время выживания (циклы)')
         ax.set_ylabel('Частота')
         pix = self.__to_pixmap(fig)
+        self.__loaded_figs[dataset["name"]]["life_time_gistogram"] = pix
         plt.close(fig)
         return pix
 
     def get_ECDF_func(self, dataset):
         """Эмпирическая функция распределения (ECDF)."""
+        if "ECDF_func" in self.__loaded_figs[dataset["name"]]:
+            return self.__loaded_figs[dataset["name"]]["ECDF_func"]
         x_sort = dataset['x_sort']
         y_norm = dataset['y_norm']
         fig, ax = plt.subplots()
@@ -102,11 +108,14 @@ class Engine:
         ax.set_ylabel('F(t)')
         ax.grid(True, alpha=0.3)
         pix = self.__to_pixmap(fig)
+        self.__loaded_figs[dataset["name"]]["ECDF_func"] = pix
         plt.close(fig)
         return pix
 
     def get_veybula_linear_func(self, dataset):
         """Линеаризованный график для распределения Вейбулла."""
+        if "veybula_linear_func" in self.__loaded_figs[dataset["name"]]:
+            return self.__loaded_figs[dataset["name"]]["veybula_linear_func"]
         F_i = dataset['F_i']
         x_sort = dataset['x_sort']  # уже отсортированные времена
         y = np.log(-np.log(1 - F_i))
@@ -125,11 +134,14 @@ class Engine:
                 label=f'Линия регрессии: {fit_coeffs[0]:.3f}x + {fit_coeffs[1]:.3f}')
         ax.legend()
         pix = self.__to_pixmap(fig)
+        self.__loaded_figs[dataset["name"]]["veybula_linear_func"] = pix
         plt.close(fig)
         return pix
 
     def get_linear_normal_dispersion_func(self, dataset):
         """Линеаризованный график для нормального распределения."""
+        if "linear_normal_dispersion_func" in self.__loaded_figs[dataset["name"]]:
+            return self.__loaded_figs[dataset["name"]]["linear_normal_dispersion_func"]
         x_sort = dataset['x_sort']
         y_norm = dataset['y_norm']
         fig, ax = plt.subplots()
@@ -146,11 +158,14 @@ class Engine:
                 label=f'Линия регрессии: {fit_coeffs[0]:.3f}x + {fit_coeffs[1]:.3f}')
         ax.legend()
         pix = self.__to_pixmap(fig)
+        self.__loaded_figs[dataset["name"]]["linear_normal_dispersion_func"] = pix
         plt.close(fig)
         return pix
 
     def get_linear_lognormal_dispersion_func(self, dataset):
         """Линеаризованный график для логнормального распределения."""
+        if "linear_lognormal_dispersion_func" in self.__loaded_figs[dataset["name"]]:
+            return self.__loaded_figs[dataset["name"]]["linear_lognormal_dispersion_func"]
         x_log_sort = dataset['x_log_sort']
         y_log_norm = dataset['y_log_norm']
         fig, ax = plt.subplots()
@@ -166,11 +181,14 @@ class Engine:
                 label=f'Линия регрессии: {fit_coeffs[0]:.3f}x + {fit_coeffs[1]:.3f}')
         ax.legend()
         pix = self.__to_pixmap(fig)
+        self.__loaded_figs[dataset["name"]]["linear_lognormal_dispersion_func"] = pix
         plt.close(fig)
         return pix
 
     def get_gamma_funcs(self, dataset):
         """Комплексный анализ гамма-распределения (4 графика)."""
+        if "gamma_funcs" in self.__loaded_figs[dataset["name"]]:
+            return self.__loaded_figs[dataset["name"]]["gamma_funcs"]
         survival_times = dataset['survival_times']
         fitted_gamma = dataset['fitted_gamma']
         a, loc, scale = dataset['params']
@@ -226,11 +244,13 @@ class Engine:
 
         plt.tight_layout()
         pix = self.__to_pixmap(fig)
+        self.__loaded_figs[dataset["name"]]["gamma_funcs"] = pix
         plt.close(fig)
         return pix
 
-    def get_text_and_func_modeling_output(self, dataset):
+    def get_text_and_func_modeling_output(self):
         """Основная функция для проведения исследования"""
+
         out = ""
         def print_to_out(*args):
             nonlocal out
@@ -336,7 +356,8 @@ class Engine:
         print_to_out("   ✓ Готовы материалы для научной публикации")
 
         fig = analyzer.create_simplified_degradation_plot()
+        summary_table = analyzer.save_simplified_results()
         pix = self.__to_pixmap(fig)
         plt.close(fig)
-        return out, pix
+        return out, pix, summary_table
 
